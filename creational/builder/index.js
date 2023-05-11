@@ -91,6 +91,16 @@ class FormGroup {
         return controlErrors;
     }
 
+    get controlsValue() {
+        const controls = {};
+
+        Object.values(this.controls).map(control => {
+            controls[control.id] = control.getValue();
+        });
+
+        return controls;
+    }
+
     setControl({ key = '', control = {} }) {
         if (this.controls[key]) {
             throw Error(`Key "${key}" already exists`); 
@@ -105,7 +115,7 @@ class FormGroup {
 }
 
 // Validadores
-const required = (message) => (value) => value.trim() ? null : { required: { message } };
+const required = (message = 'field required') => (value) => value.trim() ? null : { required: { message } };
 const minLength = (length, message) => (value) => value.length >= length ? null : { minLength: { requiredLength: length, message } };
 const maxLength = (length, message) => (value) => value.length <= length ? null : { maxLength: { requiredLength: length, message } };
 
@@ -114,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const nameControl = new FormControl({
         id: 'name',
         validators: [
-            required('field required'),
+            required('field name is required'),
             minLength(3, `required min Length: ${3}`),
             maxLength(5, `required max Length: ${5}`)
         ]
@@ -122,12 +132,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const emailControl = new FormControl({
         id: 'email',
-        validators: [required]
+        validators: [required('email is required')]
     });
 
     const passwordControl = new FormControl({
         id: 'password',
-        validators: [required, minLength(6), maxLength(8)]
+        validators: [
+            required('password is required'),
+            minLength(6, `required min Length: ${6}`),
+            maxLength(8, `required max Length: ${8}`)
+        ]
     });
 
     const formGroup = new FormGroup({
@@ -153,17 +167,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
         console.log('formGroup getErrors: ', formGroup.controlsErrors);
 
-        Object.keys(formGroup.controlsErrors).forEach(key => {
-            const errors = formGroup.controlsErrors[key];
-
-            if (key === nameControl.id) {
-                console.log('Error en NAME');
-            }
-
-            Object.values(errors).forEach(({ message }) => {
-                console.error(`Error: field ${key} "${message}"`);
+        console.log(' nameControl: ', nameControl.getValue());
+        
+        if (formGroup.isValid()) {
+            Object.keys(formGroup.controlsValue).forEach(key => {
+                const value = formGroup.controlsValue[key];
+                console.log(key, value);
             });
-        });
+
+        } else {
+            Object.keys(formGroup.controlsErrors).forEach(key => {
+                const errors = formGroup.controlsErrors[key];
+
+                if (key === nameControl.id) {
+                    console.log('Error en NAME');
+                }
+
+                Object.values(errors).forEach(({ message }) => {
+                    console.error(`Error: field ${key} "${message}"`);
+                });
+            });
+        }
     });
 
 });
