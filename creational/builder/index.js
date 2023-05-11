@@ -52,6 +52,8 @@ class FormControl {
                 if (error) {
                     Object.assign(this.errors, error);
                 }
+            } else {
+                console.error(`validator is not function`, validator);
             }
         }
     }
@@ -118,6 +120,7 @@ class FormGroup {
 const required = (message = 'field required') => (value) => value.trim() ? null : { required: { message } };
 const minLength = (length, message) => (value) => value.length >= length ? null : { minLength: { requiredLength: length, message } };
 const maxLength = (length, message) => (value) => value.length <= length ? null : { maxLength: { requiredLength: length, message } };
+const onlyNumber = (message) => (value) => /^\d+$/.test(value) ? null : { onlyNumber: { message } };
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -127,6 +130,14 @@ document.addEventListener('DOMContentLoaded', () => {
             required('field name is required'),
             minLength(3, `required min Length: ${3}`),
             maxLength(5, `required max Length: ${5}`)
+        ]
+    });
+
+    const ageControl = new FormControl({
+        id: 'age',
+        validators: [
+            required('field age is required'),
+            onlyNumber('only number')
         ]
     });
 
@@ -148,14 +159,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const formGroup = new FormGroup({
         name:     nameControl,
-        password: passwordControl
+        // password: passwordControl
     });
 
     formGroup.setControl('email', emailControl);
+    formGroup.setControl('age', ageControl);
 
     formGroup.getControl('name').updateValue('John');
     formGroup.getControl('email').updateValue('john@example.com');
-    formGroup.getControl('password').updateValue('password123');
+    // formGroup.getControl('password').updateValue('password123');
 
     document.getElementById('form').addEventListener('submit', (event) => {
         event.preventDefault();
@@ -182,12 +194,9 @@ document.addEventListener('DOMContentLoaded', () => {
             Object.keys(formGroup.controlsErrors).forEach(key => {
                 const errors = formGroup.controlsErrors[key];
 
-                if (key === nameControl.id) {
-                    console.log('Error en NAME');
-                }
-
                 Object.values(errors).forEach(({ message }) => {
-                    console.error(`Error: field ${key} "${message}"`);
+                    // console.error(`Error: field ${key} "${message}"`);
+                    console.log(`Object.values ~ message:`, message)
                 });
             });
         }
