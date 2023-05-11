@@ -101,11 +101,11 @@ class FormGroup {
         return controls;
     }
 
-    setControl({ key = '', control = {} }) {
-        if (this.controls[key]) {
-            throw Error(`Key "${key}" already exists`); 
+    setControl(id = '', control = {}) {
+        if (this.controls[id]) {
+            throw Error(`Key "${id}" already exists`); 
         } else {
-            this.controls[key] = control;
+            this.controls[id] = control;
         }
     }
 
@@ -132,7 +132,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const emailControl = new FormControl({
         id: 'email',
-        validators: [required('email is required')]
+        validators: [
+            required('email is required')
+        ]
     });
 
     const passwordControl = new FormControl({
@@ -146,13 +148,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const formGroup = new FormGroup({
         name:     nameControl,
-        // email:    emailControl,
-        // password: passwordControl
+        password: passwordControl
     });
 
-    // formGroup.getControl('name').updateValue('John');
-    // formGroup.getControl('email').updateValue('john@example.com');
-    // formGroup.getControl('password').updateValue('password123');
+    formGroup.setControl('email', emailControl);
+
+    formGroup.getControl('name').updateValue('John');
+    formGroup.getControl('email').updateValue('john@example.com');
+    formGroup.getControl('password').updateValue('password123');
 
     document.getElementById('form').addEventListener('submit', (event) => {
         event.preventDefault();
