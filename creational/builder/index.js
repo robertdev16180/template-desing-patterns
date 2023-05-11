@@ -1,71 +1,169 @@
+
 class FormControl {
-    constructor ({ value = '', validators = [] }) {
-        this.value = value;
+
+    constructor ({ id = '', value = '', validators = [] }) {
+        this.id = id;
         this.validators = validators;
         this.errors = {};
+        this.initCotrol(value);
     }
 
-    updateValue(value) {
-        this.value = value;
+    initCotrol(value = '') {
+        if (value) {
+            this.updateValue(value);
+        }
+    }
+
+    getValue() {
+        const element = document.getElementById(this.id);
+        
+        if (element) {
+            return element.value;
+        } else {
+            console.error(`element "${key}" does not exist`);
+        }
+    }
+
+    getErrors() {
         this.runValidators();
+        return this.errors;
+    }
+
+    updateValue(value = '') {
+
+        const element = document.getElementById(this.id);
+        
+        if (element) {
+            element.value = value;
+        } else {
+            console.error(`element "${key}" does not exist`);
+        }
     }
 
     runValidators() {
         this.errors = {};
 
         for (const validator of this.validators) {
-            const error = validator(this.value);
-
-            if (error) {
-                Object.assign(this.errors, error);
+            
+            if (typeof validator === 'function') {
+            
+                const error = validator(this.getValue());
+    
+                if (error) {
+                    Object.assign(this.errors, error);
+                }
             }
         }
     }
 
     isValid() {
-        return Object.keys(this.errors).length === 0; // Object.keys(this.errors).some(i => i)
+        this.runValidators();
+        return !Object.values(this.errors).some(error => error);
     }
 }
 
 class FormGroup {
-    constructor (controls) {
+
+    constructor (controls) { // FormControl[]
         this.controls = controls;
     }
 
-    getControl(key) {
+    getControl(key = '') { // FormControl
         return this.controls[key];
     }
 
-    getControls() {
+    getControls() { // FormControl[]
         return this.controls;
     }
 
+    getControlErrors(key = '') {
+        return this.controls[key].getErrors();
+    }
+
+    get controlsErrors() {
+        
+        const controlErrors = {};
+
+        Object.values(this.controls).map(control => {
+            controlErrors[control.id] = control.getErrors();
+        });
+
+        return controlErrors;
+    }
+
+    setControl({ key = '', control = {} }) {
+        if (this.controls[key]) {
+            throw Error(`Key "${key}" already exists`); 
+        } else {
+            this.controls[key] = control;
+        }
+    }
+
     isValid() {
-        return Object.values(this.controls).every((control) => control.isValid());
+        return Object.values(this.controls).every(control => control.isValid());
     }
 }
 
-// Ejemplo de uso
-
 // Validadores
-const required = (value) => (value.trim() ? null : { required: true });
-const minLength = (length) => (value) => value.length >= length ? null : { minLength: { requiredLength: length } };
+const required = (message) => (value) => value.trim() ? null : { required: { message } };
+const minLength = (length, message) => (value) => value.length >= length ? null : { minLength: { requiredLength: length, message } };
+const maxLength = (length, message) => (value) => value.length <= length ? null : { maxLength: { requiredLength: length, message } };
 
-// Crear controles utilizando el patrón Builder
-const nameControl = new FormControl("", [required]);
-const emailControl = new FormControl("", [required]);
-const passwordControl = new FormControl("", [required, minLength(6)]);
+document.addEventListener('DOMContentLoaded', () => {
 
-// Crear un FormGroup con los controles
-const registrationForm = new FormGroup({
-    name: nameControl,
-    email: emailControl,
-    password: passwordControl,
+    const nameControl = new FormControl({
+        id: 'name',
+        validators: [
+            required('field required'),
+            minLength(3, `required min Length: ${3}`),
+            maxLength(5, `required max Length: ${5}`)
+        ]
+    });
+
+    const emailControl = new FormControl({
+        id: 'email',
+        validators: [required]
+    });
+
+    const passwordControl = new FormControl({
+        id: 'password',
+        validators: [required, minLength(6), maxLength(8)]
+    });
+
+    const formGroup = new FormGroup({
+        name:     nameControl,
+        // email:    emailControl,
+        // password: passwordControl
+    });
+
+    // formGroup.getControl('name').updateValue('John');
+    // formGroup.getControl('email').updateValue('john@example.com');
+    // formGroup.getControl('password').updateValue('password123');
+
+    document.getElementById('form').addEventListener('submit', (event) => {
+        event.preventDefault();
+        
+        // console.log(`Form Submitted! Timestamp: ${event.timeStamp}`);
+        
+        // console.log('formGroup value: ', formGroup.getControl('name').getValue());
+        // console.log('nameControl isValid: ', nameControl.isValid());
+        // console.log('formGroup getErrors: ', formGroup.getControlErrors('name'));
+        // console.log('formGroup isValid: ', formGroup.getControl('name').isValid());
+        // console.log('Form is valid:', formGroup.isValid());
+
+        console.log('formGroup getErrors: ', formGroup.controlsErrors);
+
+        Object.keys(formGroup.controlsErrors).forEach(key => {
+            const errors = formGroup.controlsErrors[key];
+
+            if (key === nameControl.id) {
+                console.log('Error en NAME');
+            }
+
+            Object.values(errors).forEach(({ message }) => {
+                console.error(`Error: field ${key} "${message}"`);
+            });
+        });
+    });
+
 });
-
-// Actualizar los valores de los controles y verificar su validez
-nameControl.updateValue("John");
-emailControl.updateValue("john@example.com");
-passwordControl.updateValue("password123");
-
-console.log("Form is valid:", registrationForm.isValid());
