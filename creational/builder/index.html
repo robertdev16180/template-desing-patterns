@@ -5,23 +5,44 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <style>
+        .grid-container {
+            display: grid;
+            grid-template-columns: 100px 200px; /* Ajusta el ancho de las columnas según tus necesidades */
+            grid-gap: 10px; /* Espacio entre las celdas */
+        }
+
+        label {
+            text-align: right;
+        }
+
+        input {
+            width: 100%; /* Los campos de entrada ocuparán todo el ancho disponible */
+        }
+
+        .border-red {
+            border-color: #f13838 !important;
+        }
+    </style>
 </head>
 <body>
     
     <form id="form">
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name">
-        <br>
-        <label for="age">Age:</label>
-        <input type="text" id="age" name="age">
-        <br>
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email">
-        <br>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password">
-        <br>
-        <input type="submit" value="Submit">
+        <div class="grid-container">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name">
+
+            <label for="age">Age:</label>
+            <input type="text" id="age" name="age">
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email">
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password">
+
+            <input type="submit" value="Submit">
+        </div>
     </form>
 
     <script type="module" src="index.js"></script>

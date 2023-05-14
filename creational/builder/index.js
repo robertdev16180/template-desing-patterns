@@ -1,126 +1,6 @@
-
-class FormControl {
-
-    constructor ({ id = '', value = '', validators = [] }) {
-        this.id = id;
-        this.validators = validators;
-        this.errors = {};
-        this.initCotrol(value);
-    }
-
-    initCotrol(value = '') {
-        if (value) {
-            this.updateValue(value);
-        }
-    }
-
-    getValue() {
-        const element = document.getElementById(this.id);
-        
-        if (element) {
-            return element.value;
-        } else {
-            console.error(`element "${key}" does not exist`);
-        }
-    }
-
-    getErrors() {
-        this.runValidators();
-        return this.errors;
-    }
-
-    updateValue(value = '') {
-
-        const element = document.getElementById(this.id);
-        
-        if (element) {
-            element.value = value;
-        } else {
-            console.error(`element "${key}" does not exist`);
-        }
-    }
-
-    runValidators() {
-        this.errors = {};
-
-        for (const validator of this.validators) {
-            
-            if (typeof validator === 'function') {
-            
-                const error = validator(this.getValue());
-    
-                if (error) {
-                    Object.assign(this.errors, error);
-                }
-            } else {
-                console.error(`validator is not function`, validator);
-            }
-        }
-    }
-
-    isValid() {
-        this.runValidators();
-        return !Object.values(this.errors).some(error => error);
-    }
-}
-
-class FormGroup {
-
-    constructor (controls) { // FormControl[]
-        this.controls = controls;
-    }
-
-    getControl(key = '') { // FormControl
-        return this.controls[key];
-    }
-
-    getControls() { // FormControl[]
-        return this.controls;
-    }
-
-    getControlErrors(key = '') {
-        return this.controls[key].getErrors();
-    }
-
-    get controlsErrors() {
-        
-        const controlErrors = {};
-
-        Object.values(this.controls).map(control => {
-            controlErrors[control.id] = control.getErrors();
-        });
-
-        return controlErrors;
-    }
-
-    get controlsValue() {
-        const controls = {};
-
-        Object.values(this.controls).map(control => {
-            controls[control.id] = control.getValue();
-        });
-
-        return controls;
-    }
-
-    setControl(id = '', control = {}) {
-        if (this.controls[id]) {
-            throw Error(`Key "${id}" already exists`); 
-        } else {
-            this.controls[id] = control;
-        }
-    }
-
-    isValid() {
-        return Object.values(this.controls).every(control => control.isValid());
-    }
-}
-
-// Validadores
-const required = (message = 'field required') => (value) => value.trim() ? null : { required: { message } };
-const minLength = (length, message) => (value) => value.length >= length ? null : { minLength: { requiredLength: length, message } };
-const maxLength = (length, message) => (value) => value.length <= length ? null : { maxLength: { requiredLength: length, message } };
-const onlyNumber = (message) => (value) => /^\d+$/.test(value) ? null : { onlyNumber: { message } };
+import { FormControl } from './form-control.js';
+import { FormGroup } from './form-group.js';
+import { required, minLength, maxLength, onlyNumber } from './validators.js';
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -132,6 +12,10 @@ document.addEventListener('DOMContentLoaded', () => {
             maxLength(5, `required max Length: ${5}`)
         ]
     });
+    
+    const onlyLetter = (message) => (value) => /^[A-Za-z]+$/.test(value?.trim()) ? null : { onlyLetter: { message } };
+
+    nameControl.setValidator(onlyLetter('onlyLetter!!!!'));
 
     const ageControl = new FormControl({
         id: 'age',
@@ -162,11 +46,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // password: passwordControl
     });
 
-    formGroup.setControl('email', emailControl);
-    formGroup.setControl('age', ageControl);
+    // formGroup.setControl('email', emailControl);
+    // formGroup.setControl('age', ageControl);
 
-    formGroup.getControl('name').updateValue('John');
-    formGroup.getControl('email').updateValue('john@example.com');
+    // formGroup.getControl('name').updateValue('John');
+    // formGroup.getControl('email').updateValue('john@example.com');
     // formGroup.getControl('password').updateValue('password123');
 
     document.getElementById('form').addEventListener('submit', (event) => {
@@ -180,26 +64,27 @@ document.addEventListener('DOMContentLoaded', () => {
         // console.log('formGroup isValid: ', formGroup.getControl('name').isValid());
         // console.log('Form is valid:', formGroup.isValid());
 
-        console.log('formGroup getErrors: ', formGroup.controlsErrors);
+        // console.log('formGroup getErrors: ', formGroup.controlsErrors);
 
-        console.log(' nameControl: ', nameControl.getValue());
-        
-        if (formGroup.isValid()) {
-            Object.keys(formGroup.controlsValue).forEach(key => {
-                const value = formGroup.controlsValue[key];
-                console.log(key, value);
-            });
+        // console.log(' nameControl: ', nameControl.getValue());
 
-        } else {
-            Object.keys(formGroup.controlsErrors).forEach(key => {
-                const errors = formGroup.controlsErrors[key];
+        console.log('isValid: ', nameControl.isValid());
 
-                Object.values(errors).forEach(({ message }) => {
-                    // console.error(`Error: field ${key} "${message}"`);
-                    console.log(`Object.values ~ message:`, message)
-                });
-            });
-        }
+        // if (formGroup.isValid()) {
+        //     Object.keys(formGroup.controlsValue).forEach(key => {
+        //         const value = formGroup.controlsValue[key];
+        //         console.log(key, value);
+        //     });
+        // } else {
+        //     Object.keys(formGroup.controlsErrors).forEach(key => {
+        //         const errors = formGroup.controlsErrors[key];
+
+        //         Object.values(errors).forEach(({ message }) => {
+        //             // console.error(`Error: field ${key} "${message}"`);
+        //             console.log(`Object.values ~ message:`, message)
+        //         });
+        //     });
+        // }
     });
 
 });
